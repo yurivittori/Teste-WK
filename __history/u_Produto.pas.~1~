@@ -1,0 +1,30 @@
+unit u_Produto;
+
+interface
+
+type
+  TProduto = class
+  private
+    FNome: string;
+    FCodigo : Integer;
+    FPreco: Double;
+    FQuantidade: Integer;
+    FstMGSP : string;
+    procedure CarregarDados;
+  public
+    constructor Create(const ACodprod: Integer);
+    function CalcularTotal: Double;
+    function VerificaValorMarketplace(AValue: Double ; ACodMktp : Integer): Boolean;
+    function VerificaEstoque(AValue : Integer) : Boolean;
+    function VerificaStMGSP : Boolean;
+    function GetQuantidadeImportados(CodProduto: integer) : Currency;
+
+    property Nome: string read FNome write FNome;
+    property Preco: Double read FPreco write FPreco;
+    property Quantidade: Integer read FQuantidade write FQuantidade;
+    property stMGSP : string read FstMGSP write FstMGSP;
+  end;
+
+implementation
+
+end.

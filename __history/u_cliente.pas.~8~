@@ -1,0 +1,56 @@
+unit u_cliente;
+
+
+
+interface
+
+uses Firedac.Comp.Client, udm;
+
+type
+  TCliente = class
+  private
+    FNome: string;
+    FCodigo : Integer;
+    FCidade : string;
+    FEstado : string;
+
+  public
+    constructor Create(const ACodCliente: Integer);
+    procedure CarregarDados;
+
+    property Nome: string read FNome write FNome;
+    property Cidade: string read FCidade write FCidade;
+    property Estado : string read FEstado write FEstado;
+    //property Codigo : integer read FCodigo write FCodigo;
+  end;
+
+implementation
+
+procedure TCliente.CarregarDados;
+var
+  qryCliente: TFDQuery;
+begin
+  qryCliente := TFDQuery.Create(nil);
+  try
+    qryCliente.Connection := dm.Database;
+    qryCliente.SQL.Text := 'SELECT nome,cidade,uf FROM tb_clientes WHERE codigo = :cod';
+    qryCliente.ParamByName('cod').Value := FCodigo;
+    qryCliente.Open;
+
+    FNome   := qryCliente.FieldByName('nome').AsString;
+    FCidade := qryCliente.FieldByName('cidade').AsString;
+    FEstado := qryCliente.FieldByName('uf').AsString;
+
+  finally
+    qryCliente.Free;
+  end;
+end;
+
+constructor TCliente.Create(const ACodCliente: Integer);
+begin
+  FCodigo := ACodCliente;
+  //CarregarDados;
+end;
+
+end.
+

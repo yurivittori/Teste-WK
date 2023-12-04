@@ -1,0 +1,178 @@
+unit u_pedido;
+
+
+
+interface
+
+uses System.SysUtils, FireDac.Comp.Client, udm, Datasnap.DBClient;
+
+type
+  TPedido = class
+  private
+    FCodigo     : Integer;
+    FData       : TDate;
+    FCodCliente : Integer;
+    FValorTotal : Double;
+    procedure SalvaProdutos(AData : TClientDataset);
+    procedure SalvarPedido(ACodCliente : integer; AValorTotal : Double);
+    function GetCodigoPedido : Integer;
+
+  public
+    property Data       : TDate   read FData       write FData;
+    property CodCliente : Integer read FCodCliente write FCodCliente;
+    property ValorTotal : Double  read FValorTotal write FValorTotal;
+    procedure CarregarDados;
+  end;
+
+implementation
+
+function TPedido.GetCodigoPedido : Integer;
+var
+  qryCodPedido,
+  qryAlteraCod  : TFDQuery;
+  TSAlteraCod   : TFDTransaction;
+begin
+  qryCodPedido := TFDQuery.Create(nil);
+  qryAlteraCod := TFDQuery.Create(nil);
+  TSAlteraCod  := TFDTransaction.Create(nil);
+  try
+    qryCodPedido.Connection := dm.Database;
+    qryCodPedido.SQL.Text   := ' SELECT codigoPedido FROM sequencia ';
+    qryCodPedido.Open;
+
+    Result := qryCodPedido.Fields[0].Value + 1;
+
+    try
+      TSAlteraCod.Connection := dm.Database;
+      TSAlteraCod.StartTransaction;
+
+      qryAlteraCod.Transaction := TSAlteraCod;
+      qryAlteraCod.SQL.Text := 'UPDATE sequencia SET codigoPedido = :vl ';
+      qryAlteraCod.ParamByName('vl').Value := Result;
+      qryAlteraCod.ExecSQL;
+
+      TSAlteraCod.Commit;
+    except
+      on e: exception do
+      begin
+        TSAlteraCod.Rollback;
+        raise Exception.Create('Erro ao atualizar codigo pedido' + e.message);
+      end;
+    end;
+
+  finally
+    TSAlteraCod.DisposeOf;
+    qryCodPedido.DisposeOf;
+    qryAlteraCod.DisposeOf;
+  end;
+end;
+
+procedure TPedido.SalvarPedido(ACodCliente: Integer; AValorTotal: Double);
+var
+  qryInsereDados : TFDQuery;
+  TSInsereDados  : TFDTransaction;
+begin
+  qryInsereDados := TFDQuery.Create(nil);
+  TSInsereDados  := TFDTransaction.Create(nil);
+  try
+    try
+      TSInsereDados.Connection := dm.Database;
+      qryInsereDados.Transaction := TSInsereDados;
+
+      qryInsereDados.SQL.Text := ' INSERT INTO tb_pedidos (codigo, data, codcliente, vl_total) VALUES (:cod , :data, :codcli , :vl ) ';
+
+      TSInsereDados.StartTransaction;
+
+      qryInsereDados.ParamByName('cod').Value  := GetCodigoPedido;
+      qryInsereDados.ParamByName('data').Value := now;
+      qryInsereDados.ParamByName('codcli').Value := ACodCliente;
+      qryInsereDados.ParamByName('vl').Value := AValorTotal;
+      qryInsereDados.ExecSQL;
+
+      TSInsereDados.Commit;
+
+    except
+    on e: exception do
+      begin
+        TSInsereDados.Rollback;
+        raise Exception.Create('Erro ao inserir dados : ' + e.message);
+      end;
+    end;
+  finally
+    qryInsereDados.DisposeOf;
+    TSInsereDados.DisposeOf;
+  end;
+
+end;
+
+procedure TPedido.SalvaProdutos(AData: TClientDataset);
+var
+  qryInsereDados : TFDQuery;
+  TSInsereDados  : TFDTransaction;
+begin
+  qryInsereDados := TFDQuery.Create(nil);
+  TSInsereDados  := TFDTransaction.Create(nil);
+  try
+    try
+      TSInsereDados.Connection := dm.Database;
+      qryInsereDados.Transaction := TSInsereDados;
+
+      qryInsereDados.SQL.Text := 'INSERT INTO tb_det_pedidos (codigo, codproduto, quant, vl_unit , vl_total) VALUES (:cod , :codprod , :quant , :vlu , :vlt ) ';
+
+      TSInsereDados.StartTransaction;
+
+      AData.First;
+
+      while not (AData.Eof) do
+      begin
+        qryInsereDados.Close;
+        qryInsereDados.ParamByName('cod').Value     := FCodigo;
+        qryInsereDados.ParamByName('codprod').Value := AData.FieldByName('codigo').Value;
+        qryInsereDados.ParamByName('quant').Value   := AData.FieldByName('quantidade').Value;
+        qryInsereDados.ParamByName('vlu').Value     := AData.FieldByName('vl_venda').Value;
+        qryInsereDados.ParamByName('vlt').Value     := AData.FieldByName('vl_total').Value;
+        qryInsereDados.ExecSQL;
+
+
+        AData.Next;
+      end;
+
+      TSInsereDados.Commit;
+    except
+      on e: exception do
+      begin
+        TSInsereDados.Rollback;
+        raise Exception.Create('Erro ao inserir dados : ' + e.message);
+      end;
+    end;
+  finally
+    qryInsereDados.DisposeOf;
+    TSInsereDados.DisposeOf;
+  end;
+end;
+
+procedure TPedido.CarregarDados;
+var
+  qryPedido: TFDQuery;
+begin
+
+  qryPedido := TFDQuery.Create(nil);
+  try
+    qryPedido.Connection := dm.Database;
+    qryPedido.SQL.Text := 'SELECT data,codcliente,vl_total FROM tb_pedidos WHERE codigo = :cod';
+    qryPedido.ParamByName('cod').Value := FCodigo;
+    qryPedido.Open;
+
+    FData       := qryPedido.FieldByName('data').AsDateTime;
+    FCodCliente := qryPedido.FieldByName('codcliente').AsInteger;
+    FValorTotal := qryPedido.FieldByName('vl_total').AsFloat;
+
+  finally
+    qryPedido.Free;
+  end;
+end;
+
+
+
+end.
+

@@ -1,0 +1,19 @@
+program ProjectWK;
+
+uses
+  Vcl.Forms,
+  u_principal in 'u_principal.pas' {fPrincipal},
+  udm in 'udm.pas' {dm: TDataModule},
+  u_Produto in 'u_Produto.pas',
+  u_cliente in 'u_cliente.pas',
+  u_pedido in 'u_pedido.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(Tdm, dm);
+  Application.CreateForm(TfPrincipal, fPrincipal);
+  Application.Run;
+end.

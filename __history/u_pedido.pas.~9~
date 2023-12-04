@@ -1,0 +1,106 @@
+unit u_pedido;
+
+
+
+interface
+
+uses System.SysUtils, FireDac.Comp.Client, udm, Datasnap.DBClient;
+
+type
+  TPedido = class
+  private
+    FCodigo     : Integer;
+    FData       : TDate;
+    FCodCliente : Integer;
+    FValorTotal : Double;
+    procedure SalvaProdutos(AData : TClientDataset);
+
+  public
+    constructor Create(const ACodPedido: integer);
+    property Data       : TDate   read FData       write FData;
+    property CodCliente : Integer read FCodCliente write FCodCliente;
+    property ValorTotal : Double  read FValorTotal write FValorTotal;
+    procedure CarregarDados;
+  end;
+
+implementation
+
+procedure TPedido.SalvaProdutos(AData: TClientDataset);
+var
+  qryInsereDados : TFDQuery;
+  TSInsereDados  : TFDTransaction;
+begin
+  qryInsereDados := TFDQuery.Create(nil);
+  TSInsereDados  := TFDTransaction.Create(nil);
+  try
+    try
+      TSInsereDados.Connection := dm.Database;
+      qryInsereDados.Transaction := TSInsereDados;
+
+      qryInsereDados.SQL.Text := 'INSERT INTO tb_det_pedidos (codigo, codproduto, quant, vl_unit , vl_total) VALUES (:cod , :codprod , :quant , :vlu , :vlt ) ';
+
+      TSInsereDados.StartTransaction;
+
+      AData.First;
+
+      while not (AData.Eof) do
+      begin
+        qryInsereDados.Close;
+        qryInsereDados.ParamByName('cod').Value     := FCodigo;
+        qryInsereDados.ParamByName('codprod').Value := AData.FieldByName('codigo').Value;
+        qryInsereDados.ParamByName('quant').Value   := AData.FieldByName('quantidade').Value;
+        qryInsereDados.ParamByName('vlu').Value     := AData.FieldByName('vl_venda').Value;
+        qryInsereDados.ParamByName('vlt').Value     := AData.FieldByName('vl_total').Value;
+        qryInsereDados.ExecSQL;
+
+
+        AData.Next;
+      end;
+
+      TSInsereDados.Commit;
+    except
+      on e: exception do
+      begin
+        TSInsereDados.Rollback;
+        raise Exception.Create('Erro ao inserir dados : ' + e.message);
+      end;
+    end;
+  finally
+    qryInsereDados.DisposeOf;
+    TSInsereDados.DisposeOf;
+  end;
+
+
+
+
+
+end;
+
+procedure TPedido.CarregarDados;
+var
+  qryPedido: TFDQuery;
+begin
+
+  qryPedido := TFDQuery.Create(nil);
+  try
+    qryPedido.Connection := dm.Database;
+    qryPedido.SQL.Text := 'SELECT data,codcliente,vl_total FROM tb_pedidos WHERE codigo = :cod';
+    qryPedido.ParamByName('cod').Value := FCodigo;
+    qryPedido.Open;
+
+    FData       := qryPedido.FieldByName('data').AsDateTime;
+    FCodCliente := qryPedido.FieldByName('codcliente').AsInteger;
+    FValorTotal := qryPedido.FieldByName('vl_total').AsFloat;
+
+  finally
+    qryPedido.Free;
+  end;
+end;
+
+constructor TPedido.Create(const ACodPedido: integer);
+begin
+  FCodigo := ACodPedido;
+end;
+
+end.
+

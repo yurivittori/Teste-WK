@@ -1,0 +1,16 @@
+program ProjectWK;
+
+uses
+  Vcl.Forms,
+  u_principal in 'u_principal.pas' {fPrincipal},
+  udm in 'udm.pas' {DataModule1: TDataModule};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfPrincipal, fPrincipal);
+  Application.CreateForm(TDataModule1, DataModule1);
+  Application.Run;
+end.
