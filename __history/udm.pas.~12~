@@ -37,8 +37,7 @@ begin
   FArquivo := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'IniFiles\FDCon.INI');
   try
     try
-
-      MySQLDriver.VendorLib := ExtractFilePath(Application.ExeName) + FArquivo.ReadString('BANCO','PATH_DLL','');
+      MySQLDriver.VendorLib := ExtractFilePath(Application.ExeName) + FArquivo.ReadString('BANCO','PATH_DLLS','');
 
       Database.Params.Clear;
       Database.Params.Add('Database=' + FArquivo.ReadString('BANCO', 'DATABASE', ''));

@@ -10,7 +10,9 @@ object fPrincipal: TfPrincipal
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  Position = poScreenCenter
   OnCreate = FormCreate
+  OnShow = FormShow
   TextHeight = 15
   object gridProdutos: TDBGrid
     Left = 0
@@ -26,7 +28,7 @@ object fPrincipal: TfPrincipal
     TitleFont.Height = -12
     TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
-    OnKeyPress = gridProdutosKeyPress
+    OnKeyDown = gridProdutosKeyDown
     Columns = <
       item
         Expanded = False
@@ -169,7 +171,7 @@ object fPrincipal: TfPrincipal
       OnKeyPress = edtVALORUNITARIOKeyPress
     end
     object edtNOMEPRODUTO: TEdit
-      Left = 10
+      Left = 8
       Top = 39
       Width = 1127
       Height = 33
@@ -316,6 +318,7 @@ object fPrincipal: TfPrincipal
         FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF}
       ParentFont = False
       TabOrder = 0
+      OnClick = btGravarClick
     end
     object btCancelar: TBitBtn
       Left = 1056
@@ -362,6 +365,7 @@ object fPrincipal: TfPrincipal
       ParentShowHint = False
       ShowHint = True
       TabOrder = 1
+      OnClick = btCancelarClick
       ExplicitLeft = 1052
     end
   end
@@ -552,13 +556,5 @@ object fPrincipal: TfPrincipal
     DataSet = qryProdutos
     Left = 256
     Top = 408
-  end
-  object PopupMenu1: TPopupMenu
-    Left = 904
-    Top = 496
-    object Deletarregistro1: TMenuItem
-      Caption = 'Deletar registro'
-      OnClick = Deletarregistro1Click
-    end
   end
 end

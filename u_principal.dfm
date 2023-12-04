@@ -77,8 +77,7 @@ object fPrincipal: TfPrincipal
     Color = clGradientInactiveCaption
     ParentBackground = False
     TabOrder = 1
-    ExplicitLeft = -1
-    ExplicitTop = 155
+    ExplicitWidth = 1173
     object lblCodigo: TLabel
       Left = 8
       Top = 78
@@ -211,7 +210,6 @@ object fPrincipal: TfPrincipal
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
-      ExplicitLeft = 994
       ExplicitHeight = 28
     end
     object lblValorTotal: TLabel

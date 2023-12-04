@@ -12,23 +12,22 @@ type
     FNome: string;
     FCodigo : Integer;
     FPreco: Double;
-
+    procedure CarregarDados;
   public
     constructor Create(const ACodprod: Integer);
 
 
     property Nome: string read FNome write FNome;
     property Preco: Double read FPreco write FPreco;
-    function CarregarDados : boolean;
+
   end;
 
 implementation
 
-function TProduto.CarregarDados : boolean;
+procedure TProduto.CarregarDados;
 var
   qryProduto: TFDQuery;
 begin
-  Result := false;
   qryProduto := TFDQuery.Create(nil);
   try
     qryProduto.Connection := dm.Database;
@@ -36,14 +35,8 @@ begin
     qryProduto.ParamByName('cod').Value := FCodigo;
     qryProduto.Open;
 
-    if not (qryProduto.IsEmpty)then
-    begin
-      FNome := qryProduto.FieldByName('descricao').AsString;
-      FPreco := qryProduto.FieldByName('vl_venda').AsFloat;
-      Result := true;
-    end
-    else
-      Result := false;
+    FNome := qryProduto.FieldByName('descricao').AsString;
+    FPreco := qryProduto.FieldByName('vl_venda').AsFloat;
 
   finally
     qryProduto.Free;
@@ -53,6 +46,7 @@ end;
 constructor TProduto.Create(const ACodprod: Integer);
 begin
   FCodigo := ACodprod;
+  CarregarDados;
 end;
 
 end.

@@ -20,16 +20,16 @@ type
     property Nome: string read FNome write FNome;
     property Cidade: string read FCidade write FCidade;
     property Estado : string read FEstado write FEstado;
-    procedure CarregarDados;
+    function CarregarDados : boolean;
   end;
 
 implementation
 
-procedure TCliente.CarregarDados;
+function TCliente.CarregarDados : boolean;
 var
   qryCliente: TFDQuery;
 begin
-
+  Result := false;
   qryCliente := TFDQuery.Create(nil);
   try
     qryCliente.Connection := dm.Database;
@@ -37,9 +37,15 @@ begin
     qryCliente.ParamByName('cod').Value := FCodigo;
     qryCliente.Open;
 
-    FNome   := qryCliente.FieldByName('nome').AsString;
-    FCidade := qryCliente.FieldByName('cidade').AsString;
-    FEstado := qryCliente.FieldByName('uf').AsString;
+    if not (qryCliente.IsEmpty) then
+    begin
+      FNome   := qryCliente.FieldByName('nome').AsString;
+      FCidade := qryCliente.FieldByName('cidade').AsString;
+      FEstado := qryCliente.FieldByName('uf').AsString;
+      Result := true;
+    end
+    else
+      Result := false;
 
   finally
     qryCliente.Free;
@@ -49,7 +55,6 @@ end;
 constructor TCliente.Create(const ACodCliente: integer);
 begin
   FCodigo := ACodCliente;
-  CarregarDados;
 end;
 
 end.

@@ -13,15 +13,14 @@ type
     FCodigo : Integer;
     FCidade : string;
     FEstado : string;
-    procedure CarregarDados;
+
+
   public
-    constructor Create(const ACodCliente: Integer);
-
-
+    constructor Create(const ACodCliente: integer);
     property Nome: string read FNome write FNome;
     property Cidade: string read FCidade write FCidade;
     property Estado : string read FEstado write FEstado;
-    property Codigo : integer read FCodigo write FCodigo;
+    procedure CarregarDados;
   end;
 
 implementation
@@ -30,6 +29,7 @@ procedure TCliente.CarregarDados;
 var
   qryCliente: TFDQuery;
 begin
+
   qryCliente := TFDQuery.Create(nil);
   try
     qryCliente.Connection := dm.Database;
@@ -46,7 +46,7 @@ begin
   end;
 end;
 
-constructor TCliente.Create(const ACodCliente: Integer);
+constructor TCliente.Create(const ACodCliente: integer);
 begin
   FCodigo := ACodCliente;
   CarregarDados;

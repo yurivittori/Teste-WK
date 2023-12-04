@@ -33,12 +33,14 @@ uses Inifiles;
 procedure Tdm.DataModuleCreate(Sender: TObject);
 var
   FArquivo: TIniFile;
+  teste, test1 : string;
 begin
   FArquivo := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'IniFiles\FDCon.INI');
   try
     try
-
-      MySQLDriver.VendorLib := ExtractFilePath(Application.ExeName) + FArquivo.ReadString('BANCO','PATH_DLL','');
+      test1 := FArquivo.ReadString('BANCO','PATH_DLL','');
+      teste := ExtractFilePath(Application.ExeName) + test1;
+      MySQLDriver.VendorLib := ExtractFilePath(Application.ExeName) + FArquivo.ReadString('BANCO','PATH_DLLS','');
 
       Database.Params.Clear;
       Database.Params.Add('Database=' + FArquivo.ReadString('BANCO', 'DATABASE', ''));

@@ -13,6 +13,7 @@ object dm: Tdm
     Top = 104
   end
   object MySQLDriver: TFDPhysMySQLDriverLink
+    VendorLib = 'C:\Users\Administrator\Desktop\Teste WK\libmysql.dll'
     Left = 128
     Top = 176
   end

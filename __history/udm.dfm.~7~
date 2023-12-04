@@ -9,10 +9,12 @@ object dm: Tdm
       'Password=masterkey'
       'Server=localhost'
       'DriverID=MySQL')
+    Connected = True
     Left = 128
     Top = 104
   end
   object MySQLDriver: TFDPhysMySQLDriverLink
+    VendorLib = 'C:\Users\Administrator\Desktop\Teste WK\libmysql.dll'
     Left = 128
     Top = 176
   end

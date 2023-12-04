@@ -10,7 +10,7 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.VCLUI.Wait,
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf, FireDAC.DApt,
   Datasnap.DBClient, FireDAC.Comp.DataSet, FireDAC.Comp.Client, Vcl.Buttons,
-  Vcl.Mask, Vcl.DBCtrls, FireDAC.Phys.MySQL, FireDAC.Phys.MySQLDef,  u_produto, u_cliente,
+  Vcl.Mask, Vcl.DBCtrls, FireDAC.Phys.MySQL, FireDAC.Phys.MySQLDef,  u_produto, u_cliente, u_pedido,
   Vcl.Menus;
 
 type
@@ -63,6 +63,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure gridProdutosKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
+    procedure btGravarClick(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btCancelarClick(Sender: TObject);
   private
     CodigoCliente : Integer;
     CodigoProduto : Integer;
@@ -71,9 +74,11 @@ type
 
     Cliente : TCliente;
     Produto : TProduto;
+    Pedido  : TPedido;
     ValorTotal : Double;
     procedure DesativarSomSistema;
     procedure SetValorTotalGrid;
+    procedure ResetaTela;
   end;
 
 var
@@ -85,6 +90,19 @@ implementation
 
 uses udm, Inifiles;
 
+procedure TfPrincipal.ResetaTela;
+begin
+  edtCODIGOCLIENTE.Text    := '';
+  edtNOMECLIENTE.Text      := '';
+  edtCIDADECLIENTE.Text    := '';
+  lblESTADOCLIENTE.Caption := '';
+  edtNOMEPRODUTO.Text      := '';
+  edtCODIGOPRODUTO.Text    := '';
+  edtQuantidade.Text       := '';
+  edtVALORUNITARIO.Text    := '';
+  cdsProdutos.EmptyDataSet;
+  edtCODIGOCLIENTE.SetFocus;
+end;
 
 procedure TfPrincipal.SetValorTotalGrid;
 begin
@@ -105,6 +123,39 @@ Begin
     SelectNext(ActiveControl, True, True);
   end;
 End;
+
+procedure TfPrincipal.btCancelarClick(Sender: TObject);
+begin
+  if Application.MessageBox('Deseja deletar todas as informações?' , 'Confirmação', mb_yesno ) = mrYes then
+    ResetaTela;
+
+end;
+
+procedure TfPrincipal.btGravarClick(Sender: TObject);
+begin
+  if cdsProdutos.RecordCount = 0 then
+  begin
+    Application.MessageBox('Adicione produtos para continuar o pedido', 'Alerta', mb_iconwarning + mb_ok);
+    exit;
+  end;
+
+  if CodigoCliente = 0 then
+  begin
+    Application.MessageBox('Selecione o cliente para continuar o pedido.', 'Alerta', mb_iconwarning + mb_ok);
+    exit;
+  end;
+
+
+  Pedido := TPedido.Create;
+  try
+    Pedido.SalvarPedido(CodigoCliente, ValorTotal);
+    Pedido.SalvaProdutos(cdsProdutos);
+    ShowMessage('Pedido salvo com sucesso');
+
+  finally
+    Pedido.DisposeOf;
+  end;
+end;
 
 procedure TfPrincipal.btnAdicionarClick(Sender: TObject);
 begin
@@ -148,14 +199,28 @@ begin
 
   if key = #13 then
   begin
-    Cliente := TCliente.Create(StrToInt(edtCODIGOCLIENTE.Text));
     try
-      edtCIDADECLIENTE.Text    := Cliente.Cidade;
-      edtNOMECLIENTE.Text      := Cliente.Nome;
-      lblESTADOCLIENTE.Caption := Cliente.Estado;
-      CodigoCliente            := StrToInt(edtCODIGOCLIENTE.Text);
+      Cliente := TCliente.Create(StrToInt(edtCODIGOCLIENTE.Text));
+      try
+        if Cliente.CarregarDados then
+        begin
+          edtCIDADECLIENTE.Text    := Cliente.Cidade;
+          edtNOMECLIENTE.Text      := Cliente.Nome;
+          lblESTADOCLIENTE.Caption := Cliente.Estado;
+          CodigoCliente            := StrToInt(edtCODIGOCLIENTE.Text);
 
-      edtCODIGOPRODUTO.SetFocus;
+          edtCODIGOPRODUTO.SetFocus;
+        end
+        else
+        begin
+          Application.MessageBox('Cliente não encontrado','Alerta',mb_iconwarning + mb_ok);
+          edtCODIGOCLIENTE.Text := '';
+          edtCODIGOCLIENTE.SetFocus;
+        end;
+      except
+        on e: exception do
+          raise Exception.Create('Erro ao buscar cliente: ' + e.message);
+      end;
     finally
       Cliente.DisposeOf;
     end;
@@ -173,14 +238,24 @@ begin
   begin
     Produto := TProduto.Create(StrToInt(edtCODIGOPRODUTO.Text));
     try
-      edtNOMEPRODUTO.Text      := Produto.Nome;
-      edtVALORUNITARIO.Text    := FormatFloat('#,##0.00',Produto.Preco);
+      if Produto.CarregarDados then
+      begin
+        edtNOMEPRODUTO.Text      := Produto.Nome;
+        edtVALORUNITARIO.Text    := FormatFloat('#,##0.00',Produto.Preco);
+        CodigoProduto := StrToInt(edtCODIGOPRODUTO.Text);
+        HandleEnterKeyPress(Sender, Key);
+      end
+      else
+      begin
+        Application.MessageBox('Produto não encontrado', 'Alerta', mb_iconwarning + mb_ok);
+        edtCODIGOPRODUTO.Text := '';
+        edtCODIGOPRODUTO.SetFocus;
+      end;
     finally
       Produto.DisposeOf;
     end;
 
-    CodigoProduto := StrToInt(edtCODIGOPRODUTO.Text);
-    HandleEnterKeyPress(Sender, Key);
+
   end;
 
   if not (Key in ['0'..'9', #8]) then
@@ -206,6 +281,12 @@ begin
   CodigoProduto := 0;
   CodigoCliente := 0;
   ValorTotal    := 0;
+
+end;
+
+procedure TfPrincipal.FormShow(Sender: TObject);
+begin
+  edtCODIGOCLIENTE.SetFocus;
 end;
 
 procedure TfPrincipal.gridProdutosKeyDown(Sender: TObject; var Key: Word;

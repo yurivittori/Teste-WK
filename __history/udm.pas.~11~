@@ -32,9 +32,48 @@ uses Inifiles;
 
 procedure Tdm.DataModuleCreate(Sender: TObject);
 var
-  FArquivo : TIniFile;
+  FArquivo: TIniFile;
 begin
   FArquivo := TIniFile.Create(ExtractFilePath(Application.ExeName) + 'IniFiles\FDCon.INI');
+  try
+    try
+
+      Database.Params.Clear;
+      Database.Params.Add('Database=' + FArquivo.ReadString('BANCO', 'DATABASE', ''));
+      Database.Params.Add('User_Name=' + FArquivo.ReadString('BANCO', 'USERNAME', ''));
+      Database.Params.Add('Server=' + FArquivo.ReadString('BANCO', 'SERVER', ''));
+      Database.Params.Add('Port=' + FArquivo.ReadString('BANCO', 'PORT', ''));
+      Database.Params.Add('Password=' + FArquivo.ReadString('BANCO', 'PASSWORD', ''));
+
+      Database.DriverName := 'MySQL';
+      Database.Connected := True;
+
+    except
+      on E: Exception do
+      begin
+
+        raise EXCEPTION.Create(E.Message);
+      end;
+    end;
+
+  finally
+    FArquivo.Free;
+  end;
+
 end;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 end.

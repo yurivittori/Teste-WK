@@ -133,6 +133,19 @@ end;
 
 procedure TfPrincipal.btGravarClick(Sender: TObject);
 begin
+  if cdsProdutos.RecordCount = 0 then
+  begin
+    Application.MessageBox('Adicione produtos para continuar o pedido', 'Alerta', mb_iconwarning + mb_ok);
+    exit;
+  end;
+
+  if CodigoCliente = 0 then
+  begin
+    Application.MessageBox('Selecione o cliente para continuar o pedido.', 'Alerta', mb_iconwarning + mb_ok);
+    exit;
+  end;
+
+
   Pedido := TPedido.Create;
   try
     Pedido.SalvarPedido(CodigoCliente, ValorTotal);
@@ -186,14 +199,28 @@ begin
 
   if key = #13 then
   begin
-    Cliente := TCliente.Create(StrToInt(edtCODIGOCLIENTE.Text));
     try
-      edtCIDADECLIENTE.Text    := Cliente.Cidade;
-      edtNOMECLIENTE.Text      := Cliente.Nome;
-      lblESTADOCLIENTE.Caption := Cliente.Estado;
-      CodigoCliente            := StrToInt(edtCODIGOCLIENTE.Text);
+      Cliente := TCliente.Create(StrToInt(edtCODIGOCLIENTE.Text));
+      try
+        if Cliente.CarregarDados then
+        begin
+          edtCIDADECLIENTE.Text    := Cliente.Cidade;
+          edtNOMECLIENTE.Text      := Cliente.Nome;
+          lblESTADOCLIENTE.Caption := Cliente.Estado;
+          CodigoCliente            := StrToInt(edtCODIGOCLIENTE.Text);
 
-      edtCODIGOPRODUTO.SetFocus;
+          edtCODIGOPRODUTO.SetFocus;
+        end
+        else
+        begin
+          Application.MessageBox('Cliente não encontrado','Alerta',mb_iconwarning + mb_ok);
+          edtCODIGOCLIENTE.Text := '';
+          edtCODIGOCLIENTE.SetFocus;
+        end;
+      except
+        on e: exception do
+          raise Exception.Create('Erro ao buscar cliente: ' + e.message);
+      end;
     finally
       Cliente.DisposeOf;
     end;
@@ -211,14 +238,27 @@ begin
   begin
     Produto := TProduto.Create(StrToInt(edtCODIGOPRODUTO.Text));
     try
-      edtNOMEPRODUTO.Text      := Produto.Nome;
-      edtVALORUNITARIO.Text    := FormatFloat('#,##0.00',Produto.Preco);
+      if Produto.CarregarDados then
+      begin
+        edtNOMEPRODUTO.Text      := Produto.Nome;
+        edtVALORUNITARIO.Text    := FormatFloat('#,##0.00',Produto.Preco);
+        CodigoProduto := StrToInt(edtCODIGOPRODUTO.Text);
+        HandleEnterKeyPress(Sender, Key);
+      end
+      else
+      begin
+        Application.MessageBox('Produto não encontrado', 'Alerta', mb_iconwarning + mb_ok);
+        edtCODIGOPRODUTO.Text := '';
+        edtNOMEPRODUTO.Text := '';
+        edtQuantidade.Text := '';
+        edtVALORUNITARIO.Text := '';
+        edtCODIGOPRODUTO.SetFocus;
+      end;
     finally
       Produto.DisposeOf;
     end;
 
-    CodigoProduto := StrToInt(edtCODIGOPRODUTO.Text);
-    HandleEnterKeyPress(Sender, Key);
+
   end;
 
   if not (Key in ['0'..'9', #8]) then
